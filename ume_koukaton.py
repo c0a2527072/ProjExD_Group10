@@ -167,7 +167,10 @@ class Egg(pg.sprite.Sprite):
         """
         卵画像Surfaceを生成する
         引数 egg：卵を放つこうかとん
+        卵を放つとき効果音が鳴る
         """
+        self.snd = pg.mixer.Sound(f"Sound effects/ショット.mp3") #卵を打つときの効果音
+        self.snd.play(maxtime=100)
         super().__init__()
         self.vx = 0
         self.vy = -1  
@@ -192,6 +195,7 @@ class Explosion(pg.sprite.Sprite):
     """
     爆発に関するクラス
     """
+
     def __init__(self, obj: "Bomb|Enemy", life: int):
         """
         爆弾が爆発するエフェクトを生成する
@@ -199,6 +203,11 @@ class Explosion(pg.sprite.Sprite):
         引数2 life：爆発時間
         """
         super().__init__()
+
+        self.exp_snd = pg.mixer.Sound("Sound effects/爆発1.mp3")
+
+        self.exp_snd.play()
+
         img = pg.image.load(f"fig/explosion.gif")
         self.imgs = [img, pg.transform.flip(img, 1, 1)]
         self.image = self.imgs[0]
@@ -263,12 +272,27 @@ class Score:
         screen.blit(self.image, self.rect)
 
 
+#class Beam(pg.sprite.Sprite):
+    """
+    ビームを打つときにチャージするサウンドと打つときの音を追加
+    """
+    #charge_snd = pg.mixer.Sound(f"Sound effects/ビーム胞チャージ.mp3")
+    #fire_snd = pg.mixer.Sound(f"Sound effects/ビーム胞1.mp3")
+ 
+    #def __init__(self,bird: Bird):
+        #super().__init__()
+
+    
+
+
 def main():
     pg.display.set_caption("真！こうかとん無双")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
     bg_img = pg.image.load(f"fig/pg_bg.jpg")
     score = Score()
     life = Life(3)
+    pg.mixer.music.load(f"Sound effects/Synthetic_Solitude.mp3")#通常BGM
+    pg.mixer.music.play(loops=-1)
 
     bird = Bird(3, (WIDTH/2, HEIGHT-200))
     bombs = pg.sprite.Group()
@@ -308,7 +332,12 @@ def main():
         for bomb in pg.sprite.spritecollide(bird, bombs, True):
             life.num -= 1
 
+            pg.mixer.Sound("Sound effects/打撃1.mp3").play()
+
             if life.num <= 0:
+                pg.mixer.music.stop()#ゲームオーバーの時に音を鳴らす
+                pg.mixer.music.load(f"Sound effects/gameover.mp3")
+                pg.mixer.music.play(1)
                 bird.change_img(8, screen)
                 score.update(screen)
                 pg.display.update()
@@ -333,6 +362,7 @@ def main():
 
 if __name__ == "__main__":
     pg.init()
+    pg.mixer.init()
     main()
     pg.quit()
     sys.exit()
