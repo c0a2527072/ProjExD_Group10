@@ -361,6 +361,41 @@ class Score:
         screen.blit(self.image, self.rect)
 
 
+class Item(pg.sprite.Sprite):
+    """
+    獲得すると特殊な効果を発揮するアイテムに関するクラス
+    """
+    def __init__(self, emy_rect: pg.Rect):
+        """
+        倒された敵の位置にアイテムを生成する
+        """
+        super().__init__()
+        # アイテムの種類をランダムで決定
+        self.kind = random.choice(["Score", "Speed", "Life"])
+        self.font = pg.font.Font(None, 30)
+        
+        # 種類に応じたテキストの色を設定
+        if self.kind == "Score":
+            color = (255, 215, 0)   # 金色（スコアアップ）
+        elif self.kind == "Speed":
+            color = (0, 255, 0)     # 緑色（移動速度アップ）
+        else:
+            color = (255, 105, 180) # ピンク（残機回復）
+            
+        self.image = self.font.render(self.kind, True, color)
+        self.rect = self.image.get_rect()
+        self.rect.center = emy_rect.center
+        self.vy = +3
+    
+    def update(self):
+        """
+        アイテムを落下させ、画面外に出たら削除する
+        """
+        self.rect.move_ip(0, self.vy)
+        if check_bound(self.rect) != (True, True):
+            self.kill()
+
+
 def main():
     pg.display.set_caption("真！こうかとん無双")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -375,6 +410,7 @@ def main():
     eggs = pg.sprite.Group()
     exps = pg.sprite.Group()
     emys = pg.sprite.Group()
+    items = pg.sprite.Group()  # アイテムグループを追加
     boss = pg.sprite.Group()
     wings = pg.sprite.Group()
 
@@ -434,6 +470,10 @@ def main():
             else:
                 emy.damage = 5
 
+            # 敵を倒した時、30%の確率でアイテムをドロップ
+            if random.random() < 0.3:
+                items.add(Item(emy.rect))
+
         for bomb in pg.sprite.groupcollide(bombs, eggs, True, True).keys():  # ビームと衝突した爆弾リスト
             exps.add(Explosion(bomb, 50))  # 爆発エフェクト
             score.value += 1  # 1点アップ
@@ -448,6 +488,15 @@ def main():
                 time.sleep(2)
                 return
             
+        # こうかとんとアイテムの衝突判定（拾ったときの効果）
+        for item in pg.sprite.spritecollide(bird, items, True):
+            if item.kind == "Score":
+                score.value += 100  # スコア+100ボーナス
+            elif item.kind == "Speed":
+                bird.speed += 2     # こうかとんの移動速度が2アップ
+            elif item.kind == "Life":
+                life.num += 1       # 残機が1回復
+                
         for wing in pg.sprite.spritecollide(bird, wings, True):
             life.num -= 1
 
@@ -477,6 +526,8 @@ def main():
         bombs.draw(screen)
         exps.update()
         exps.draw(screen)
+        items.update()      # アイテムの移動状態更新
+        items.draw(screen)   # アイテムを画面に描画
         score.update(screen)
         life.update(screen)
         boss.update()
