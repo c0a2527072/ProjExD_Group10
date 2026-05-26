@@ -203,7 +203,7 @@ class Explosion(pg.sprite.Sprite):
         引数2 life：爆発時間
         """
         super().__init__()
-
+        #卵がぶつかったときに爆発音を鳴らす
         self.exp_snd = pg.mixer.Sound("Sound effects/爆発1.mp3")
 
         self.exp_snd.play()
@@ -273,15 +273,24 @@ class Score:
 
 
 #class Beam(pg.sprite.Sprite):
-    """
-    ビームを打つときにチャージするサウンドと打つときの音を追加
-    """
-    #charge_snd = pg.mixer.Sound(f"Sound effects/ビーム胞チャージ.mp3")
-    #fire_snd = pg.mixer.Sound(f"Sound effects/ビーム胞1.mp3")
  
     #def __init__(self,bird: Bird):
         #super().__init__()
+        """
+        ビームを打つときにチャージするサウンドと打つときの音を追加
+        """
+        #self.charge_snd = pg.mixer.Sound(f"Sound effects/ビーム胞チャージ.mp3")
+        #self.fire_snd = pg.mixer.Sound(f"Sound effects/ビーム胞1.mp3")
 
+    #def play_charge(self):
+        """【機能追加】チャージ音を再生する"""
+            #self.charge_snd.play()
+            
+    #def play_fire(self):
+        """【機能追加】チャージ音を止めて、発射音を再生する"""
+            #self.charge_snd.stop() # チャージ音をストップ
+            #self.fire_snd.play()   # 発射音をドカン！と鳴らす
+        
     
 
 
@@ -331,7 +340,7 @@ def main():
 
         for bomb in pg.sprite.spritecollide(bird, bombs, True):
             life.num -= 1
-
+            #残機減少時の被弾効果音を再生
             pg.mixer.Sound("Sound effects/打撃1.mp3").play()
 
             if life.num <= 0:
