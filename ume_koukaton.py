@@ -351,7 +351,7 @@ class Score:
     def __init__(self):
         self.font = pg.font.Font(None, 50)
         self.color = (0, 0, 255)
-        self.value = 90
+        self.value = 0
         self.image = self.font.render(f"Score: {self.value}", 0, self.color)
         self.rect = self.image.get_rect()
         self.rect.center = 100, HEIGHT-50
@@ -456,23 +456,20 @@ def main():
                     exps.add(Explosion(bos, 200))
                     bos.kill()
 
-        for emy in pg.sprite.groupcollide(emys, eggs, True, True).keys():  # ビームと衝突した敵機リスト
-            exps.add(Explosion(emy, 100))  # 爆発エフェクト
-            score.value += 10  # 10点アップ
-            bird.change_img(6, screen)  # こうかとん喜びエフェクト
         for emy in pg.sprite.groupcollide(emys, eggs, False, True):
             emy.hp -= 1
             if emy.hp <= 0:
                 emy.kill()
                 exps.add(Explosion(emy, 100))
+                print("item added")
                 score.value += 10
                 bird.change_img(6, screen)
+                # 敵を倒した時、30%の確率でアイテムをドロップ
+                if random.random() < 0.3:
+                    items.add(Item(emy.rect))
+
             else:
                 emy.damage = 5
-
-            # 敵を倒した時、30%の確率でアイテムをドロップ
-            if random.random() < 0.3:
-                items.add(Item(emy.rect))
 
         for bomb in pg.sprite.groupcollide(bombs, eggs, True, True).keys():  # ビームと衝突した爆弾リスト
             exps.add(Explosion(bomb, 50))  # 爆発エフェクト
@@ -516,6 +513,15 @@ def main():
                 pg.display.update()
                 time.sleep(2)
                 return
+        
+         # こうかとんとアイテムの衝突判定（拾ったときの効果）
+        for item in pg.sprite.spritecollide(bird, items, True):
+            if item.kind == "Score":
+                score.value += 100  # スコア+100ボーナス
+            elif item.kind == "Speed":
+                bird.speed += 2     # こうかとんの移動速度が2アップ
+            elif item.kind == "Life":
+                life.num += 1       # 残機が1回復
 
         bird.update(key_lst, screen)
         eggs.update()
